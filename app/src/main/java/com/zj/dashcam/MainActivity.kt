@@ -3,6 +3,7 @@ package com.zj.dashcam
 import android.os.Bundle
 import android.Manifest
 import android.content.pm.PackageManager
+import android.view.Surface
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -48,6 +49,7 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         logger.d("onStart: starting loop recording.")
         loopRecordingManager.start()
+        updatePreviewRotation()
         startCameraPreviewWithPermission()
     }
 
@@ -74,5 +76,18 @@ class MainActivity : AppCompatActivity() {
             logger.d("请求相机权限。")
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    private fun updatePreviewRotation() {
+        val rotation = windowManager.defaultDisplay.rotation
+        val degrees = when (rotation) {
+            Surface.ROTATION_0 -> 0
+            Surface.ROTATION_90 -> 90
+            Surface.ROTATION_180 -> 180
+            Surface.ROTATION_270 -> 270
+            else -> 0
+        }
+        logger.d("刷新预览方向 rotation=$rotation degrees=$degrees")
+        previewView.setDisplayRotation(degrees)
     }
 }

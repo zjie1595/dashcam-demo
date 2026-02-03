@@ -32,6 +32,9 @@ class CameraRenderer(
     private var overlayWidth = 0
     private var overlayHeight = 0
     private var lastTimestampSec: Long = 0
+    private var displayRotationDegrees = 0
+    private val rotationMatrix = FloatArray(16)
+    private val finalTransformMatrix = FloatArray(16)
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA)
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
@@ -68,6 +71,18 @@ class CameraRenderer(
         surfaceTextureListener = listener
     }
 
+    /**
+     * 设置显示方向角度，用于修正预览方向（例如竖屏时为90度）。
+     */
+    fun setDisplayRotation(degrees: Int) {
+        if (displayRotationDegrees == degrees) {
+            return
+        }
+        displayRotationDegrees = degrees
+        Matrix.setRotateM(rotationMatrix, 0, degrees.toFloat(), 0f, 0f, 1f)
+        logger.d("更新预览旋转角度 degrees=$degrees")
+    }
+
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         logger.d("OpenGL Surface创建完成。")
         textureId = GlUtil.createExternalTexture()
@@ -101,9 +116,18 @@ class CameraRenderer(
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         texture.updateTexImage()
         texture.getTransformMatrix(transformMatrix)
+        updateFinalTransformMatrix()
         drawCameraFrame()
         updateTimestampOverlayIfNeeded()
         drawOverlay()
+    }
+
+    private fun updateFinalTransformMatrix() {
+        if (displayRotationDegrees == 0) {
+            System.arraycopy(transformMatrix, 0, finalTransformMatrix, 0, transformMatrix.size)
+            return
+        }
+        Matrix.multiplyMM(finalTransformMatrix, 0, transformMatrix, 0, rotationMatrix, 0)
     }
 
     private fun drawCameraFrame() {
@@ -121,7 +145,7 @@ class CameraRenderer(
         quadBuffer.position(2)
         GLES20.glVertexAttribPointer(textureHandle, 2, GLES20.GL_FLOAT, false, 16, quadBuffer)
         GLES20.glEnableVertexAttribArray(textureHandle)
-        GLES20.glUniformMatrix4fv(matrixHandle, 1, false, transformMatrix, 0)
+        GLES20.glUniformMatrix4fv(matrixHandle, 1, false, finalTransformMatrix, 0)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         GLES20.glDisableVertexAttribArray(positionHandle)
         GLES20.glDisableVertexAttribArray(textureHandle)

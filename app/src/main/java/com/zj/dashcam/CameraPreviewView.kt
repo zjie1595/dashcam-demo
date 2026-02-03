@@ -61,4 +61,12 @@ class CameraPreviewView @JvmOverloads constructor(
         cameraController.stop()
     }
 
+    /**
+     * 设置预览方向角度，用于修正显示方向。
+     */
+    fun setDisplayRotation(degrees: Int) {
+        logger.d("设置预览方向 degrees=$degrees")
+        renderer.setDisplayRotation(degrees)
+    }
+
 }
