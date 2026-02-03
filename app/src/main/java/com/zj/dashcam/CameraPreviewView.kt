@@ -10,7 +10,7 @@ class CameraPreviewView @JvmOverloads constructor(
 ) : GLSurfaceView(context, attrs) {
     private val logger = Logger("CameraPreviewView")
     private val renderer: CameraRenderer
-    private val cameraController = Camera2Controller(context, Logger("Camera2Controller"))
+    private val cameraController = Camera2Controller(context)
     @Volatile
     private var surfaceReady = false
 

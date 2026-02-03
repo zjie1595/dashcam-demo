@@ -15,9 +15,9 @@ import android.view.Surface
 import androidx.core.content.ContextCompat
 
 class Camera2Controller(
-    private val context: Context,
-    private val logger: Logger
+    private val context: Context
 ) {
+    private val logger = Logger(LOG_PREFIX)
     private val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     private val backgroundThread = HandlerThread("Camera2Thread").apply { start() }
     private val backgroundHandler = Handler(backgroundThread.looper)
@@ -161,5 +161,9 @@ class Camera2Controller(
     private fun hasCameraPermission(): Boolean {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
             PackageManager.PERMISSION_GRANTED
+    }
+
+    companion object {
+        private const val LOG_PREFIX = "Camera2Controller"
     }
 }
